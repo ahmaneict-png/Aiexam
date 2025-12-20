@@ -56,5 +56,25 @@ export const storageService = {
       request.onsuccess = () => resolve();
       request.onerror = (event: any) => reject(event.target.error);
     });
+  },
+
+  importExam: async (examData: string): Promise<Exam> => {
+    try {
+      const exam = JSON.parse(examData) as Exam;
+      // Basic validation
+      if (!exam.id || !exam.questions) throw new Error("अवैध फाईल फॉरमॅट");
+      
+      const db = await openDB();
+      const transaction = db.transaction(STORE_NAME, 'readwrite');
+      const store = transaction.objectStore(STORE_NAME);
+      await new Promise<void>((resolve, reject) => {
+        const req = store.put(exam);
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject();
+      });
+      return exam;
+    } catch (e) {
+      throw new Error("पेपर इम्पोर्ट करताना चूक झाली. कृपया योग्य फाईल निवडा.");
+    }
   }
 };

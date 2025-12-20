@@ -66,7 +66,6 @@ const App: React.FC = () => {
         const width = img.width;
         const height = img.height;
 
-        // Ensure box values are safe
         const ymin = Math.max(0, box.ymin);
         const xmin = Math.max(0, box.xmin);
         const ymax = Math.min(1000, box.ymax);
@@ -91,7 +90,7 @@ const App: React.FC = () => {
 
   const handleUpload = async (file: File) => {
     if (!hasKey) {
-      setError("कृपया आधी 'API Key' निवडा. (डॅशबोर्डवर 'API Key निवडा' बटण आहे)");
+      setError("कृपया आधी 'API Key' निवडा.");
       return;
     }
 
@@ -105,7 +104,6 @@ const App: React.FC = () => {
       
       setLoadingMessage('आकृत्या आणि मजकूर तयार करत आहे...');
       const processedQuestions = await Promise.all(exam.questions.map(async (q) => {
-        // AI might give a page index, if not default to 0
         const pIdx = q.pageIndex !== undefined ? q.pageIndex : 0;
         const pageImg = pageImages[pIdx] || pageImages[0];
         
@@ -113,14 +111,8 @@ const App: React.FC = () => {
         let diagramUrl = undefined;
         let optionsUrls = undefined;
 
-        if (q.contextBox && pageImg) {
-            contextUrl = await cropImage(pageImg, q.contextBox);
-        }
-
-        if (q.diagramBox && pageImg) {
-            diagramUrl = await cropImage(pageImg, q.diagramBox);
-        }
-
+        if (q.contextBox && pageImg) contextUrl = await cropImage(pageImg, q.contextBox);
+        if (q.diagramBox && pageImg) diagramUrl = await cropImage(pageImg, q.diagramBox);
         if (q.optionsDiagramBoxes && q.optionsDiagramBoxes.length > 0 && pageImg) {
             optionsUrls = await Promise.all(q.optionsDiagramBoxes.map(box => cropImage(pageImg, box)));
         }
@@ -143,13 +135,7 @@ const App: React.FC = () => {
       await loadExams();
       setView(AppView.TEACHER_PANEL);
     } catch (err: any) {
-      console.error(err);
-      let msg = err.message || 'काहीतरी चुकले.';
-      if (msg.includes("permission") || msg.includes("403")) {
-        msg = "तुमच्या API Key ला परवानगी नाही. कृपया दुसरी 'Paid' की निवडा.";
-        setHasKey(false);
-      }
-      setError(msg);
+      setError(err.message || 'काहीतरी चुकले.');
       setView(AppView.TEACHER_PANEL);
     }
   };
@@ -168,7 +154,7 @@ const App: React.FC = () => {
           
           for (let i = 1; i <= pdf.numPages; i++) {
             const page = await pdf.getPage(i);
-            const viewport = page.getViewport({ scale: 2.5 }); // Higher scale for better OCR/Cropping
+            const viewport = page.getViewport({ scale: 2.5 });
             const canvas = document.createElement('canvas');
             const context = canvas.getContext('2d');
             canvas.height = viewport.height;
@@ -181,19 +167,14 @@ const App: React.FC = () => {
           resolve(images);
         } catch (err) { reject(err); }
       };
-      fileReader.onerror = () => reject(new Error("File read error"));
       fileReader.readAsArrayBuffer(file);
     });
   };
 
   const handleDeleteExam = async (id: string) => {
     if (window.confirm('हा पेपर कायमचा हटवायचा आहे का?')) {
-      try {
-        await storageService.deleteExam(id);
-        await loadExams();
-      } catch (err) {
-        alert("पेपर हटवताना तांत्रिक अडथळा आला.");
-      }
+      await storageService.deleteExam(id);
+      await loadExams();
     }
   };
 
@@ -206,7 +187,7 @@ const App: React.FC = () => {
       setGradingReport(report);
       setView(AppView.VIEWING_REPORT);
     } catch (err: any) {
-      setError('निकाल तयार करताना त्रुटी आली. कदाचित सर्व्हर व्यस्त आहे.');
+      setError('निकाल तयार करताना त्रुटी आली.');
       setView(AppView.TAKING_EXAM);
     }
   };
@@ -220,7 +201,7 @@ const App: React.FC = () => {
       case AppView.TEACHER_PANEL:
         return <TeacherPanel exams={exams} onUpload={handleUpload} onDelete={handleDeleteExam} onBack={() => setView(AppView.HOME)} uploadError={error} hasKey={hasKey} onSelectKey={handleSelectKey} />;
       case AppView.STUDENT_PANEL:
-        return <StudentPanel exams={exams} onSelectExam={(e, name) => { setCurrentExam(e); setStudentName(name); setView(AppView.TAKING_EXAM); }} onBack={() => setView(AppView.HOME)} />;
+        return <StudentPanel exams={exams} onRefresh={loadExams} onSelectExam={(e, name) => { setCurrentExam(e); setStudentName(name); setView(AppView.TAKING_EXAM); }} onBack={() => setView(AppView.HOME)} />;
       case AppView.UPLOADING:
         return <LoadingIndicator message={loadingMessage} />;
       case AppView.TAKING_EXAM:
