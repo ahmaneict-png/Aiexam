@@ -16,6 +16,16 @@ import { storageService } from './services/storageService';
 declare const pdfjsLib: any;
 declare const window: any;
 
+/**
+ * पब्लिश करण्यासाठी सूचना:
+ * १. शिक्षक पॅनलमध्ये जाऊन पेपर बनवा.
+ * २. 'Copy Code' बटण दाबून पेपरचा कोड कॉपी करा.
+ * ३. खालील रिकाम्या कंसात [] तो पेस्ट करा. (उदा. [ {id: '...', title: '...'} ])
+ */
+const PRESET_EXAMS: Exam[] = [
+  // तुमचा कॉपी केलेला पेपर कोड येथे पेस्ट करा
+];
+
 const App: React.FC = () => {
   const [view, setView] = useState<AppView>(AppView.HOME);
   const [exams, setExams] = useState<Exam[]>([]);
@@ -41,7 +51,9 @@ const App: React.FC = () => {
   const loadExams = async () => {
     try {
       const allExams = await storageService.getAllExams();
-      setExams(allExams);
+      // Combine hardcoded preset exams with locally saved ones
+      const combined = [...PRESET_EXAMS.map(e => ({ ...e, isPreset: true })), ...allExams];
+      setExams(combined);
     } catch (err) {
       console.error("Failed to load exams", err);
     }

@@ -46,6 +46,7 @@ export interface Exam {
   title: string;
   timestamp: number;
   questions: Question[];
+  isPreset?: boolean; // New field to identify hardcoded exams
 }
 
 export type StudentAnswers = Record<number, string>;

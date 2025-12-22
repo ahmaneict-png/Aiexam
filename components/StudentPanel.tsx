@@ -32,8 +32,8 @@ const StudentPanel: React.FC<StudentPanelProps> = ({ exams, onSelectExam, onBack
         const content = event.target?.result as string;
         const exam = await storageService.importExam(content);
         setError(null);
-        onRefresh(); // Refresh list to show new exam
-        setSelectedExam(exam); // Auto-select it
+        onRefresh(); 
+        setSelectedExam(exam);
       } catch (err: any) {
         setError(err.message);
       }
@@ -74,6 +74,9 @@ const StudentPanel: React.FC<StudentPanelProps> = ({ exams, onSelectExam, onBack
 
       {selectedExam ? (
         <div className="bg-white p-10 rounded-[3rem] shadow-2xl border border-indigo-100 animate-in fade-in slide-in-from-bottom-4">
+          <div className="flex justify-center mb-4">
+            {selectedExam.isPreset && <span className="bg-indigo-600 text-white px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">अधिकृत परीक्षा</span>}
+          </div>
           <h3 className="text-3xl font-black mb-8 text-center text-slate-800 leading-tight">{selectedExam.title}</h3>
           <div className="max-w-md mx-auto space-y-6">
             <div>
@@ -119,11 +122,13 @@ const StudentPanel: React.FC<StudentPanelProps> = ({ exams, onSelectExam, onBack
               <button 
                 key={exam.id}
                 onClick={() => setSelectedExam(exam)}
-                className="group text-left bg-white p-8 rounded-[2.5rem] shadow-lg border-2 border-transparent hover:border-indigo-500 hover:shadow-2xl transition-all transform hover:-translate-y-1"
+                className={`group text-left p-8 rounded-[2.5rem] shadow-lg border-2 transition-all transform hover:-translate-y-1 ${exam.isPreset ? 'bg-indigo-50/30 border-indigo-200 hover:border-indigo-600' : 'bg-white border-transparent hover:border-indigo-500'}`}
               >
                 <div className="flex justify-between items-start mb-6">
-                  <div className="bg-indigo-50 text-indigo-700 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest">पेपर सोडवा</div>
-                  <div className="w-10 h-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                  <div className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest ${exam.isPreset ? 'bg-indigo-600 text-white' : 'bg-indigo-50 text-indigo-700'}`}>
+                    {exam.isPreset ? 'अधिकृत' : 'लोकल'}
+                  </div>
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform ${exam.isPreset ? 'bg-indigo-800 text-white' : 'bg-indigo-600 text-white'}`}>
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                     </svg>
